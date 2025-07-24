@@ -9,10 +9,8 @@ import { ThemeProvider } from "~/components/theme-provider";
 import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
-  title: "Social Department",
-  description:
-    "Social Department is a platform for creating social media content for your brand.",
-  icons: [{ rel: "icon", url: "/favicon.ico" }],
+  title: "Injury Summary",
+  icons: [{ rel: "icon", url: "/zinda.svg" }],
 };
 
 const inter = Inter({

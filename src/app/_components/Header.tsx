@@ -1,6 +1,6 @@
 import { SignedIn, UserButton } from "@clerk/nextjs";
-import { Logo } from "./Logo";
 import Link from "next/link";
+import Image from "next/image";
 
 export function Header() {
   return (
@@ -10,12 +10,15 @@ export function Header() {
         {/* Main header background with lighter gradient */}
         <div className="border-b border-gray-600/50 bg-gradient-to-b from-gray-600/80 via-gray-600/60 to-gray-600/65 shadow-2xl backdrop-blur-xl">
           <div className="flex items-center justify-between px-6 py-4">
-            {/* Logo section with enhanced styling */}
+            {/* Logo only, no Home word */}
             <Link href="/" className="relative flex items-center space-x-3">
-              {/* Logo container */}
-              <div className="relative p-2">
-                <Logo />
-              </div>
+              <Image 
+                src="/zinda.svg" 
+                alt="Zinda Law Group Logo" 
+                width={32} 
+                height={32}
+                className="h-8 w-8"
+              />
             </Link>
 
             {/* Navigation and auth section */}

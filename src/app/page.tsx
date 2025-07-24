@@ -10,12 +10,7 @@ export default function HomePage() {
     <main className="flex min-h-screen flex-col items-center justify-center pt-16 text-white">
       <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16">
         <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
-          Accelerated{" "}
-          <span className="text-[hsl(280,100%,70%)]">social content</span>
-          <br />
-          <span className="text-[hsl(280,100%,70%)]">
-            for entertainment marketing
-          </span>
+          Zinda Raw Analysis
         </h1>
 
         {isLoaded && (
@@ -24,12 +19,11 @@ export default function HomePage() {
               <>
                 <Link
                   className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
-                  href="/manual-generate"
+                  href="/list"
                 >
-                  <h3 className="text-2xl font-bold">Generate Manually →</h3>
+                  <h3 className="text-2xl font-bold">Incident Analysis List →</h3>
                   <div className="text-lg">
-                    You can generate content manually by inputting a several
-                    values and selecting several options.
+                    View all incident analyses in a table. Click any row for details.
                   </div>
                 </Link>
                 <Link

@@ -7,23 +7,19 @@ import { Button } from "~/components/ui/button";
 import { Textarea } from "~/components/ui/textarea";
 import { Label } from "~/components/ui/label";
 import { Separator } from "~/components/ui/separator";
-import { Play, FileText } from "lucide-react";
-import { generateMarketingStrength } from "~/lib/actions/generate-marketing-strength";
+import { Play, FileText, RefreshCw, Save } from "lucide-react";
+import { generateIncidentAnalysis, extractIncidentFields } from "~/lib/actions/generate-marketing-strength";
 import { processPdfUpload } from "~/lib/actions/process-pdf-upload";
 import { toast } from "sonner";
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "~/lib/constants";
 
-interface CampaignData {
-  name: string;
-  selectedEpisodes: string[];
-  goals: string[];
-  kpis: string[];
-  gender: string;
-  ethnicity: string[];
-  ageRanges: string[];
-  fansOf: string[];
-  marketingStrength: string;
-  audienceInsight: string;
+interface IncidentData {
+  dateOfInjury: string;
+  locationOfIncident: string;
+  causeOfIncident: string;
+  typeOfIncident: string;
+  statutoryViolationsCited: string[];
+  summary: string;
 }
 
 interface ProcessedPdfData {
@@ -53,25 +49,17 @@ export default function GeneratePage() {
   const [outputs, setOutputs] = useState<string[]>(["", "", ""]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [pdfData, setPdfData] = useState<ProcessedPdfData | null>(null);
 
-  const [campaignData, setCampaignData] = useState<CampaignData>({
-    name: "Winter 2025",
-    selectedEpisodes: [
-      "Law And Order CI S01E05",
-      "Law And Order CI S01E06",
-      "Law And Order CI S01E07",
-    ],
-    goals: ["Attract new audience to legacy IP"],
-    kpis: ["Grow follow count", "Increase awareness"],
-    gender: "Women",
-    ethnicity: ["All ethnicities"],
-    ageRanges: ["18 to 24 years old", "25 to 34 years old"],
-    fansOf: ["Drama", "Romance", "News"],
-    marketingStrength:
-      "Dynamic Character Development and Moral Complexity: Law & Order offers young adult women a unique viewing experience that goes beyond typical crime dramas. The series excels in presenting morally complex situations that resonate with viewers seeking depth and nuance in their entertainment choices.",
-    audienceInsight:
-      "Women aged 18-34 are avid consumers of drama and romance content, often seeking emotional connections with characters. Law & Order's blend of intense storytelling and personal narratives can appeal to this demographic's desire for compelling, character-driven content.",
+  const [incidentData, setIncidentData] = useState<IncidentData>({
+    dateOfInjury: "January 15, 2024",
+    locationOfIncident: "Construction Site - Building A",
+    causeOfIncident: "Fall from scaffolding",
+    typeOfIncident: "Workplace Accident",
+    statutoryViolationsCited: ["OSHA 1926.451", "Safety Training Violation"],
+    summary: "Worker fell from scaffolding due to improper safety equipment and lack of training.",
   });
 
   // Process PDF data from session storage
@@ -99,7 +87,7 @@ export default function GeneratePage() {
           // Call the process-pdf-upload action
           const result = await processPdfUpload({
             fileUrl: pdfData.url,
-            documentType: pdfData.documentType || "marketing", // Use document type from session storage
+            documentType: pdfData.documentType || "incident", // Use incident document type
           });
 
           if (result.validationErrors) {
@@ -145,45 +133,8 @@ export default function GeneratePage() {
 
             setPdfData(processedData);
 
-            // Update campaign data with extracted information
-            setCampaignData((prev) => ({
-              ...prev,
-              selectedEpisodes:
-                Array.isArray(result.data!.analyzedData.selectedEpisodes) &&
-                result.data!.analyzedData.selectedEpisodes.length > 0
-                  ? result.data!.analyzedData.selectedEpisodes
-                  : prev.selectedEpisodes,
-              goals:
-                Array.isArray(result.data!.analyzedData.campaignGoals) &&
-                result.data!.analyzedData.campaignGoals.length > 0
-                  ? result.data!.analyzedData.campaignGoals
-                  : prev.goals,
-              kpis:
-                Array.isArray(result.data!.analyzedData.campaignKPIs) &&
-                result.data!.analyzedData.campaignKPIs.length > 0
-                  ? result.data!.analyzedData.campaignKPIs
-                  : prev.kpis,
-              gender:
-                typeof result.data!.analyzedData.gender === "string" &&
-                result.data!.analyzedData.gender
-                  ? result.data!.analyzedData.gender
-                  : prev.gender,
-              ethnicity:
-                Array.isArray(result.data!.analyzedData.ethnicity) &&
-                result.data!.analyzedData.ethnicity.length > 0
-                  ? result.data!.analyzedData.ethnicity
-                  : prev.ethnicity,
-              ageRanges:
-                Array.isArray(result.data!.analyzedData.age) &&
-                result.data!.analyzedData.age.length > 0
-                  ? result.data!.analyzedData.age
-                  : prev.ageRanges,
-              fansOf:
-                Array.isArray(result.data!.analyzedData.fansOf) &&
-                result.data!.analyzedData.fansOf.length > 0
-                  ? result.data!.analyzedData.fansOf
-                  : prev.fansOf,
-            }));
+            // Extract incident fields from PDF text
+            await extractFieldsFromPdf(result.data.extractedText);
           } else {
             throw new Error("No data returned from PDF processing");
           }
@@ -204,37 +155,64 @@ export default function GeneratePage() {
     void processPdfFromSession();
   }, []);
 
+  // Function to extract incident fields from PDF text
+  const extractFieldsFromPdf = async (pdfText: string) => {
+    setIsExtracting(true);
+    try {
+      const result = await extractIncidentFields({
+        pdfText: pdfText,
+      });
+
+      if (result.data?.extractedFields) {
+        setIncidentData((prev) => ({
+          ...prev,
+          dateOfInjury: result.data!.extractedFields.dateOfInjury,
+          locationOfIncident: result.data!.extractedFields.locationOfIncident,
+          causeOfIncident: result.data!.extractedFields.causeOfIncident,
+          typeOfIncident: result.data!.extractedFields.typeOfIncident,
+          statutoryViolationsCited: result.data!.extractedFields.statutoryViolationsCited,
+        }));
+        toast.success("Incident fields extracted successfully from PDF");
+      } else if (result.validationErrors) {
+        toast.error("Failed to extract fields from PDF");
+      }
+    } catch (error) {
+      toast.error("Error extracting fields from PDF");
+    } finally {
+      setIsExtracting(false);
+    }
+  };
+
   const handleGenerate = async () => {
     setIsGenerating(true);
 
     try {
-      const result = await generateMarketingStrength({
-        selectedEpisodes: campaignData.selectedEpisodes,
-        campaignGoal: campaignData.goals.join(", "),
-        campaignKPIs: campaignData.kpis,
-        gender: campaignData.gender,
-        ethnicity: campaignData.ethnicity,
-        age: campaignData.ageRanges,
-        fansOf: campaignData.fansOf,
+      const result = await generateIncidentAnalysis({
+        dateOfInjury: incidentData.dateOfInjury,
+        locationOfIncident: incidentData.locationOfIncident,
+        causeOfIncident: incidentData.causeOfIncident,
+        typeOfIncident: incidentData.typeOfIncident,
+        statutoryViolationsCited: incidentData.statutoryViolationsCited,
+        pdfText: pdfData?.extractedText || "",
       });
 
       if (result.data) {
-        setOutputs(result.data.strengths);
+        setOutputs([result.data.summary, "", ""]);
         toast.success(SUCCESS_MESSAGES.GENERATION_COMPLETE);
       } else if (result.validationErrors) {
         setOutputs([
-          "Error: Invalid input data. Please check your campaign parameters.",
-          "Error: Invalid input data. Please check your campaign parameters.",
-          "Error: Invalid input data. Please check your campaign parameters.",
+          "Error: Invalid input data. Please check your incident parameters.",
+          "Error: Invalid input data. Please check your incident parameters.",
+          "Error: Invalid input data. Please check your incident parameters.",
         ]);
         toast.error("Validation error occurred");
       } else {
         setOutputs([
-          "Error: Failed to generate marketing strength. Please try again.",
-          "Error: Failed to generate marketing strength. Please try again.",
-          "Error: Failed to generate marketing strength. Please try again.",
+          "Error: Failed to generate incident analysis. Please try again.",
+          "Error: Failed to generate incident analysis. Please try again.",
+          "Error: Failed to generate incident analysis. Please try again.",
         ]);
-        toast.error("Failed to generate marketing strength");
+        toast.error("Failed to generate incident analysis");
       }
     } catch (error) {
       setOutputs([
@@ -250,13 +228,46 @@ export default function GeneratePage() {
     }
   };
 
+  const handleSave = async () => {
+    if (!outputs[0]) {
+      toast.error("No summary to save. Please generate a summary first.");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const result = await generateIncidentAnalysis({
+        dateOfInjury: incidentData.dateOfInjury,
+        locationOfIncident: incidentData.locationOfIncident,
+        causeOfIncident: incidentData.causeOfIncident,
+        typeOfIncident: incidentData.typeOfIncident,
+        statutoryViolationsCited: incidentData.statutoryViolationsCited,
+        pdfText: pdfData?.extractedText || "",
+      });
+
+      if (result.data) {
+        toast.success("Incident analysis saved successfully to database!");
+      } else if (result.validationErrors) {
+        toast.error("Validation error occurred while saving");
+      } else {
+        toast.error("Failed to save incident analysis");
+      }
+    } catch (error) {
+      toast.error(
+        `${error instanceof Error ? error.message : ERROR_MESSAGES.NETWORK_ERROR}`,
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-950 via-purple-900 to-purple-950 px-6 pt-32 pb-6">
       {/* Progress Bar */}
       <div className="mx-auto mb-8 max-w-6xl">
         <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-white">Marketing Strength</h1>
-          <span className="text-sm text-gray-300">Target Strength</span>
+          <h1 className="text-2xl font-bold text-white">Incident Analysis</h1>
+          <span className="text-sm text-gray-300">Legal Analysis</span>
         </div>
       </div>
 
@@ -281,7 +292,7 @@ export default function GeneratePage() {
                   <div className="flex items-center gap-3 rounded-md border border-blue-500/30 bg-blue-600/20 p-3">
                     <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-blue-300"></div>
                     <p className="text-sm text-blue-300">
-                      Processing PDF and extracting campaign parameters...
+                      Processing PDF and extracting incident parameters...
                     </p>
                   </div>
                 ) : (
@@ -317,34 +328,50 @@ export default function GeneratePage() {
               <CardContent className="space-y-4">
                 <div className="rounded-md border border-blue-500/30 bg-blue-600/20 p-3">
                   <p className="text-sm text-blue-300">
-                    Extracting and analyzing campaign parameters...
+                    Please upload a PDF file to extract incident parameters.
                   </p>
                 </div>
               </CardContent>
             </Card>
           )}
 
-          {/* Campaign Parameters */}
+          {/* Incident Parameters */}
           <Card className="border-gray-700 bg-gray-800/50 backdrop-blur-sm">
             <CardHeader className="pb-4">
-              <CardTitle className="text-lg font-semibold text-white">
-                Campaign Parameters
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg font-semibold text-white">
+                  Incident Parameters
+                </CardTitle>
+                {pdfData && (
+                  <Button
+                    onClick={() => extractFieldsFromPdf(pdfData.extractedText)}
+                    disabled={isExtracting}
+                    size="sm"
+                    variant="outline"
+                    className="border-blue-500/30 bg-blue-600/20 text-blue-300 hover:bg-blue-600/30"
+                  >
+                    {isExtracting ? (
+                      <>
+                        <RefreshCw className="mr-2 h-3 w-3 animate-spin" />
+                        Extracting...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="mr-2 h-3 w-3" />
+                        Re-extract
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
                 <Label className="text-sm font-medium text-gray-300">
-                  Selected Episodes
+                  Date of Injury
                 </Label>
-                <div className="mt-2 space-y-1">
-                  {campaignData.selectedEpisodes.map((episode, index) => (
-                    <div
-                      key={index}
-                      className="rounded-md bg-gray-700/50 px-3 py-2 text-sm text-white"
-                    >
-                      {episode}
-                    </div>
-                  ))}
+                <div className="mt-2 rounded-md bg-gray-700/50 px-3 py-2 text-sm text-white">
+                  {incidentData.dateOfInjury}
                 </div>
               </div>
 
@@ -352,17 +379,10 @@ export default function GeneratePage() {
 
               <div>
                 <Label className="text-sm font-medium text-gray-300">
-                  Campaign Goals
+                  Location of Incident
                 </Label>
-                <div className="mt-2 space-y-1">
-                  {campaignData.goals.map((goal, index) => (
-                    <div
-                      key={index}
-                      className="rounded-md bg-gray-700/50 px-3 py-2 text-sm text-white"
-                    >
-                      {goal}
-                    </div>
-                  ))}
+                <div className="mt-2 rounded-md bg-gray-700/50 px-3 py-2 text-sm text-white">
+                  {incidentData.locationOfIncident}
                 </div>
               </div>
 
@@ -370,45 +390,10 @@ export default function GeneratePage() {
 
               <div>
                 <Label className="text-sm font-medium text-gray-300">
-                  Campaign KPIs
+                  Cause of Incident
                 </Label>
-                <div className="mt-2 space-y-1">
-                  {campaignData.kpis.map((kpi, index) => (
-                    <div
-                      key={index}
-                      className="rounded-md bg-gray-700/50 px-3 py-2 text-sm text-white"
-                    >
-                      {kpi}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <Separator className="bg-gray-600" />
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm font-medium text-gray-300">
-                    Gender
-                  </Label>
-                  <div className="mt-2 rounded-md bg-gray-700/50 px-3 py-2 text-sm text-white">
-                    {campaignData.gender}
-                  </div>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-300">
-                    Ethnicity
-                  </Label>
-                  <div className="mt-2 space-y-1">
-                    {campaignData.ethnicity.map((ethnicity, index) => (
-                      <div
-                        key={index}
-                        className="rounded-md bg-gray-700/50 px-3 py-2 text-sm text-white"
-                      >
-                        {ethnicity}
-                      </div>
-                    ))}
-                  </div>
+                <div className="mt-2 rounded-md bg-gray-700/50 px-3 py-2 text-sm text-white">
+                  {incidentData.causeOfIncident}
                 </div>
               </div>
 
@@ -416,17 +401,10 @@ export default function GeneratePage() {
 
               <div>
                 <Label className="text-sm font-medium text-gray-300">
-                  Age Ranges
+                  Type of Incident
                 </Label>
-                <div className="mt-2 space-y-1">
-                  {campaignData.ageRanges.map((age, index) => (
-                    <div
-                      key={index}
-                      className="rounded-md bg-gray-700/50 px-3 py-2 text-sm text-white"
-                    >
-                      {age}
-                    </div>
-                  ))}
+                <div className="mt-2 rounded-md bg-gray-700/50 px-3 py-2 text-sm text-white">
+                  {incidentData.typeOfIncident}
                 </div>
               </div>
 
@@ -434,17 +412,16 @@ export default function GeneratePage() {
 
               <div>
                 <Label className="text-sm font-medium text-gray-300">
-                  Fans Of
+                  Statutory Violations Cited
                 </Label>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {campaignData.fansOf.map((genre, index) => (
-                    <Badge
+                <div className="mt-2 space-y-1">
+                  {incidentData.statutoryViolationsCited.map((violation, index) => (
+                    <div
                       key={index}
-                      variant="outline"
-                      className="border-purple-500/30 bg-purple-600/20 text-xs text-purple-300"
+                      className="rounded-md bg-gray-700/50 px-3 py-2 text-sm text-white"
                     >
-                      {genre}
-                    </Badge>
+                      {violation}
+                    </div>
                   ))}
                 </div>
               </div>
@@ -454,7 +431,7 @@ export default function GeneratePage() {
           {/* Generate Button */}
           <Button
             onClick={handleGenerate}
-            disabled={isGenerating || isAnalyzing}
+            disabled={isGenerating || isAnalyzing || isExtracting}
             className="w-full cursor-pointer border-0 bg-gradient-to-r from-purple-600 to-purple-500 text-white shadow-lg shadow-purple-500/25 transition-all duration-200 hover:from-purple-700 hover:to-purple-600"
             size="lg"
           >
@@ -468,10 +445,15 @@ export default function GeneratePage() {
                 <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-white" />
                 Processing PDF...
               </>
+            ) : isExtracting ? (
+              <>
+                <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-white" />
+                Extracting Fields...
+              </>
             ) : (
               <>
                 <Play className="mr-2 h-4 w-4" />
-                Generate Marketing Strength
+                Generate Incident Analysis
               </>
             )}
           </Button>
@@ -480,47 +462,70 @@ export default function GeneratePage() {
         {/* Right Panel - Output */}
         <div className="space-y-6">
           <h2 className="text-xl font-semibold text-white">
-            Generated Strengths
+            Generated Summary
           </h2>
 
-          {outputs.map((output, index) => (
-            <Card
-              key={index}
-              className="border-gray-700 bg-gray-800/50 backdrop-blur-sm"
-            >
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-white">
-                    Output {index + 1}
-                  </CardTitle>
-                  <Badge
-                    variant="outline"
-                    className={`text-xs ${
-                      isGenerating
-                        ? "border-blue-500/30 bg-blue-600/20 text-blue-300"
-                        : output
-                          ? "border-green-500/30 bg-green-600/20 text-green-300"
-                          : "border-red-500/30 bg-red-600/20 text-red-300"
-                    }`}
-                  >
-                    {isGenerating
-                      ? "Generating"
-                      : output
-                        ? "Generated"
-                        : "Not yet"}
-                  </Badge>
+          <Card className="border-gray-700 bg-gray-800/50 backdrop-blur-sm">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-white">
+                  Summary
+                </CardTitle>
+                <Badge
+                  variant="outline"
+                  className={`text-xs ${
+                    isGenerating
+                      ? "border-blue-500/30 bg-blue-600/20 text-blue-300"
+                      : outputs[0]
+                        ? "border-green-500/30 bg-green-600/20 text-green-300"
+                        : "border-red-500/30 bg-red-600/20 text-red-300"
+                  }`}
+                >
+                  {isGenerating
+                    ? "Generating"
+                    : outputs[0]
+                      ? "Generated"
+                      : "Not yet"}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {isGenerating ? (
+                <div className="flex flex-col items-center justify-center min-h-[200px]">
+                  <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-400 border-t-transparent mb-4"></div>
+                  <span className="text-blue-300 font-semibold">Generating...</span>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <Textarea
-                  value={output}
-                  placeholder="Your output will appear here after you submit."
-                  className="min-h-[200px] resize-none border-gray-600 bg-gray-700/50 text-white placeholder:text-gray-400 focus:border-purple-500 focus:ring-purple-500"
-                  readOnly
-                />
-              </CardContent>
-            </Card>
-          ))}
+              ) : (
+                <>
+                  <Textarea
+                    value={outputs[0]}
+                    placeholder="Your summary will appear here after you submit."
+                    className="min-h-[400px] resize-none border-gray-600 bg-gray-700/50 text-white placeholder:text-gray-400 focus:border-purple-500 focus:ring-purple-500"
+                    readOnly
+                  />
+                  {/* Save Button */}
+                  <Button
+                    onClick={handleSave}
+                    disabled={isSaving || !outputs[0]}
+                    className="w-full cursor-pointer border-0 bg-gradient-to-r from-green-600 to-green-500 text-white shadow-lg shadow-green-500/25 transition-all duration-200 hover:from-green-700 hover:to-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    size="lg"
+                  >
+                    {isSaving ? (
+                      <>
+                        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-white" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="mr-2 h-4 w-4" />
+                        Save to Database
+                      </>
+                    )}
+                  </Button>
+                </>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

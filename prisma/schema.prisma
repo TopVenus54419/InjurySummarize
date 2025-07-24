@@ -42,3 +42,19 @@ model MarketingStrength {
     @@index([userId])
     @@index([createdAt])
 }
+
+model IncidentAnalysis {
+    id                        Int      @id @default(autoincrement())
+    dateOfInjury              String
+    locationOfIncident        String
+    causeOfIncident           String
+    typeOfIncident            String
+    statutoryViolationsCited  String[]
+    summary                   String
+    userId                    String
+    createdAt                 DateTime @default(now())
+    updatedAt                 DateTime @updatedAt
+
+    @@index([userId])
+    @@index([createdAt])
+}

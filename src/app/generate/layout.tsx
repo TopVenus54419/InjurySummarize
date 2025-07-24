@@ -3,9 +3,9 @@ import "~/styles/globals.css";
 import { type Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Social Department",
+  title: "Incident Analysis",
   description:
-    "Social Department is a platform for creating social media content for your brand.",
+    "Professional incident analysis and legal reporting platform for workplace incidents and compliance.",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
