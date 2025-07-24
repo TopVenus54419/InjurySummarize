@@ -45,8 +45,7 @@ export default function HomePage() {
                 >
                   <h3 className="text-2xl font-bold">Sign In →</h3>
                   <div className="text-lg">
-                    Sign in to access the content generation and PDF upload
-                    features.
+                    Sign in to access incident analysis and PDF upload features.
                   </div>
                 </Link>
                 <Link
@@ -55,7 +54,7 @@ export default function HomePage() {
                 >
                   <h3 className="text-2xl font-bold">Create Account →</h3>
                   <div className="text-lg">
-                    Create a new account to get started with content generation.
+                    Create a new account to get started with incident analysis.
                   </div>
                 </Link>
               </>

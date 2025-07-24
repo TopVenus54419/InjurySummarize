@@ -1,7 +1,7 @@
 export const APP_CONFIG = {
-  name: "Social Department",
+  name: "Zinda Raw Analysis",
   version: "1.0.0",
-  description: "AI-powered Social Marketing Campaign Generator",
+  description: "AI-powered Incident Analysis and Legal Reporting Platform",
   maxFileSize: "32MB",
   supportedFileTypes: ["application/pdf"],
   maxTextLength: 3000,
@@ -14,16 +14,16 @@ export const ERROR_MESSAGES = {
   FILE_NOT_FOUND: "File not found",
   INVALID_FILE_TYPE: "Invalid file type. Please upload a PDF file.",
   UPLOAD_FAILED: "Upload failed",
-  PROCESSING_FAILED: "Failed to process PDF",
-  ANALYSIS_FAILED: "Failed to analyze PDF content",
+  PROCESSING_FAILED: "Failed to process PDF file for incident analysis.",
+  ANALYSIS_FAILED: "Failed to analyze incident report.",
   NETWORK_ERROR: "Network error occurred",
   VALIDATION_ERROR: "Validation error",
 } as const;
 
 export const SUCCESS_MESSAGES = {
   UPLOAD_COMPLETE: "Upload complete!",
-  PDF_PROCESSED: "PDF processed successfully! Campaign parameters updated.",
-  GENERATION_COMPLETE: "Marketing strength generated successfully!",
+  PDF_PROCESSED: "PDF processed successfully! Incident details extracted.",
+  GENERATION_COMPLETE: "Incident analysis generated successfully!",
 } as const;
 
 // Sample data for Step One

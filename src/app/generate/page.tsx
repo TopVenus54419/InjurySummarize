@@ -77,7 +77,7 @@ export default function GeneratePage() {
           if (!pdfData.url || typeof pdfData.url !== "string") {
             sessionStorage.removeItem("currentPdfData");
             toast.error(
-              "Invalid PDF data found. Please upload a new PDF file.",
+              "Invalid PDF data found. Please upload a new incident report PDF.",
             );
             return;
           }
@@ -201,9 +201,9 @@ export default function GeneratePage() {
         toast.success(SUCCESS_MESSAGES.GENERATION_COMPLETE);
       } else if (result.validationErrors) {
         setOutputs([
-          "Error: Invalid input data. Please check your incident parameters.",
-          "Error: Invalid input data. Please check your incident parameters.",
-          "Error: Invalid input data. Please check your incident parameters.",
+          "Error: Invalid input data. Please check your incident report fields.",
+          "Error: Invalid input data. Please check your incident report fields.",
+          "Error: Invalid input data. Please check your incident report fields.",
         ]);
         toast.error("Validation error occurred");
       } else {

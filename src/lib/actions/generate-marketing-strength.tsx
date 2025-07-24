@@ -269,23 +269,28 @@ Return only valid JSON with these exact field names:
 
       // Parse the JSON response
       try {
-        const extractedFields = JSON.parse(extractedText);
-        
+        type ExtractedFields = {
+          dateOfInjury?: unknown;
+          locationOfIncident?: unknown;
+          causeOfIncident?: unknown;
+          typeOfIncident?: unknown;
+          statutoryViolationsCited?: unknown;
+        };
+        const extractedFields: ExtractedFields = JSON.parse(extractedText);
         // Validate the extracted fields
         const validatedFields = {
-          dateOfInjury: extractedFields.dateOfInjury || "Not specified",
-          locationOfIncident: extractedFields.locationOfIncident || "Not specified",
-          causeOfIncident: extractedFields.causeOfIncident || "Not specified",
-          typeOfIncident: extractedFields.typeOfIncident || "Not specified",
-          statutoryViolationsCited: Array.isArray(extractedFields.statutoryViolationsCited) 
-            ? extractedFields.statutoryViolationsCited 
+          dateOfInjury: typeof extractedFields.dateOfInjury === "string" ? extractedFields.dateOfInjury ?? "Not specified" : "Not specified",
+          locationOfIncident: typeof extractedFields.locationOfIncident === "string" ? extractedFields.locationOfIncident ?? "Not specified" : "Not specified",
+          causeOfIncident: typeof extractedFields.causeOfIncident === "string" ? extractedFields.causeOfIncident ?? "Not specified" : "Not specified",
+          typeOfIncident: typeof extractedFields.typeOfIncident === "string" ? extractedFields.typeOfIncident ?? "Not specified" : "Not specified",
+          statutoryViolationsCited: Array.isArray(extractedFields.statutoryViolationsCited)
+            ? (extractedFields.statutoryViolationsCited as string[])
             : ["Not specified"],
         };
-
         return {
           extractedFields: validatedFields,
         };
-      } catch (parseError) {
+      } catch {
         throw new Error("Failed to parse extracted fields from AI response");
       }
     } catch (error) {
