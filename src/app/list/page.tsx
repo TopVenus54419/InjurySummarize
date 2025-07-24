@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -7,7 +8,20 @@ import { Button } from "~/components/ui/button";
 import { Separator } from "~/components/ui/separator";
 import { Eye, EyeOff } from "lucide-react";
 
-// Helper to truncate to N words
+// IncidentAnalysis type based on Prisma schema
+interface IncidentAnalysis {
+  id: number;
+  dateOfInjury: string;
+  locationOfIncident: string;
+  causeOfIncident: string;
+  typeOfIncident: string;
+  statutoryViolationsCited: string[];
+  summary: string;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 function truncateWords(text: string, wordLimit: number) {
   if (!text) return "";
   const words = text.split(/\s+/);
@@ -34,28 +48,26 @@ function Modal({ open, onClose, children }: { open: boolean; onClose: () => void
 }
 
 export default function IncidentAnalysisListPage() {
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<IncidentAnalysis[]>([]);
   const [usernames, setUsernames] = useState<Record<string, string>>({});
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [expandedSummary, setExpandedSummary] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch data on mount
   useEffect(() => {
-    (async () => {
+    void (async () => {
       setLoading(true);
       const res = await getIncidentAnalysisHistory();
       if (res?.data?.history) {
-        setItems(res.data.history);
-        // Fetch usernames for all userIds
-        const userIds = Array.from(new Set(res.data.history.map((item: any) => item.userId)));
+        setItems(res.data.history as IncidentAnalysis[]);
+        const userIds = Array.from(new Set((res.data.history as IncidentAnalysis[]).map((item) => item.userId)));
         const userMap: Record<string, string> = {};
         await Promise.all(userIds.map(async (id) => {
           try {
             const resp = await fetch(`/api/clerk-user?userId=${id}`);
-            const data = await resp.json();
-            userMap[String(id)] = data.username || data.email || String(id);
+            const data: { username?: string; email?: string } = await resp.json();
+            userMap[String(id)] = data.username ?? data.email ?? String(id);
           } catch {
             userMap[String(id)] = String(id);
           }
@@ -66,9 +78,8 @@ export default function IncidentAnalysisListPage() {
     })();
   }, []);
 
-  const selected = selectedIdx !== null ? items[selectedIdx] : null;
+  const selected: IncidentAnalysis | null = (selectedIdx !== null && items[selectedIdx] !== undefined) ? items[selectedIdx] : null;
 
-  // Modal navigation handlers
   const handlePrev = () => {
     if (selectedIdx === null || items.length === 0) return;
     setSelectedIdx((selectedIdx - 1 + items.length) % items.length);
@@ -106,17 +117,15 @@ export default function IncidentAnalysisListPage() {
                   {items.map((item, idx) => (
                     <tr
                       key={item.id}
-                      className={
-                        `transition-colors ${idx % 2 === 0 ? "bg-white" : "bg-gray-50"} hover:bg-blue-50 cursor-pointer`
-                      }
+                      className={`transition-colors ${idx % 2 === 0 ? "bg-white" : "bg-gray-50"} hover:bg-blue-50 cursor-pointer`}
                       onClick={() => { setSelectedIdx(idx); setShowModal(true); }}
                     >
-                      <td className="px-4 py-2 whitespace-nowrap">{truncateWords(usernames[String(item.userId)] || item.userId, 2)}</td>
+                      <td className="px-4 py-2 whitespace-nowrap">{truncateWords(usernames[item.userId] ?? item.userId, 2)}</td>
                       <td className="px-4 py-2 whitespace-nowrap">{truncateWords(item.dateOfInjury, 2)}</td>
                       <td className="px-4 py-2 whitespace-nowrap">{truncateWords(item.locationOfIncident, 2)}</td>
                       <td className="px-4 py-2 whitespace-nowrap">{truncateWords(item.causeOfIncident, 2)}</td>
                       <td className="px-4 py-2 whitespace-nowrap">{truncateWords(item.typeOfIncident, 2)}</td>
-                      <td className="px-4 py-2 whitespace-nowrap">{truncateWords(item.statutoryViolationsCited?.join(", "), 2)}</td>
+                      <td className="px-4 py-2 whitespace-nowrap">{truncateWords(item.statutoryViolationsCited.join(", "), 2)}</td>
                       <td className="px-4 py-2 max-w-xs flex items-center gap-2">
                         <span>
                           {expandedSummary === idx ? item.summary : truncateWords(item.summary, 2)}
@@ -144,12 +153,12 @@ export default function IncidentAnalysisListPage() {
           <h2 className="text-xl font-bold mb-2">Incident Analysis Details</h2>
           {selected && (
             <div className="space-y-2">
-              <div><b>Username:</b> {usernames[String(selected.userId)] || selected.userId}</div>
+              <div><b>Username:</b> {usernames[selected.userId] ?? selected.userId}</div>
               <div><b>Date of Injury:</b> {selected.dateOfInjury}</div>
               <div><b>Location of Incident:</b> {selected.locationOfIncident}</div>
               <div><b>Cause of Incident:</b> {selected.causeOfIncident}</div>
               <div><b>Type of Incident:</b> {selected.typeOfIncident}</div>
-              <div><b>Statutory Violations Cited:</b> {selected.statutoryViolationsCited?.join(", ")}</div>
+              <div><b>Statutory Violations Cited:</b> {selected.statutoryViolationsCited.join(", ")}</div>
               <Separator />
               <div><b>Summary:</b></div>
               <div className="whitespace-pre-line bg-gray-100 rounded p-2 max-h-64 overflow-auto">{selected.summary}</div>

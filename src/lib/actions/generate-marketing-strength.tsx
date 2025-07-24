@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 "use server";
 
 import { z } from "zod";
@@ -18,6 +19,18 @@ const generateIncidentAnalysisSchema = z.object({
     .min(1, "At least one statutory violation must be specified"),
   pdfText: z.string().min(1, "PDF text is required"),
 });
+
+// --- OpenAI API Response Types ---
+interface OpenAIMessage {
+  role: string;
+  content: string;
+}
+interface OpenAIChoice {
+  message: OpenAIMessage;
+}
+interface OpenAIResponse {
+  choices?: OpenAIChoice[];
+}
 
 // Function to generate summary from PDF text
 async function generateSummary(pdfText: string): Promise<string> {
@@ -51,7 +64,7 @@ async function generateSummary(pdfText: string): Promise<string> {
       );
     }
 
-    const result = await response.json();
+    const result: OpenAIResponse = await response.json();
     const generatedText = result.choices?.[0]?.message?.content;
 
     if (!generatedText) {
@@ -125,7 +138,7 @@ Now generate the "Incident Analysis" section. Should be comprehensive and well-s
         );
       }
 
-      const result = await response.json();
+      const result: OpenAIResponse = await response.json();
       const analysis = result.choices?.[0]?.message?.content;
 
       if (!analysis) {
@@ -260,7 +273,7 @@ Return only valid JSON with these exact field names:
         );
       }
 
-      const result = await response.json();
+      const result: OpenAIResponse = await response.json();
       const extractedText = result.choices?.[0]?.message?.content;
 
       if (!extractedText) {
@@ -269,22 +282,22 @@ Return only valid JSON with these exact field names:
 
       // Parse the JSON response
       try {
-        type ExtractedFields = {
-          dateOfInjury?: unknown;
-          locationOfIncident?: unknown;
-          causeOfIncident?: unknown;
-          typeOfIncident?: unknown;
-          statutoryViolationsCited?: unknown;
-        };
+        interface ExtractedFields {
+          dateOfInjury?: string;
+          locationOfIncident?: string;
+          causeOfIncident?: string;
+          typeOfIncident?: string;
+          statutoryViolationsCited?: string[];
+        }
         const extractedFields: ExtractedFields = JSON.parse(extractedText);
         // Validate the extracted fields
         const validatedFields = {
-          dateOfInjury: typeof extractedFields.dateOfInjury === "string" ? extractedFields.dateOfInjury ?? "Not specified" : "Not specified",
-          locationOfIncident: typeof extractedFields.locationOfIncident === "string" ? extractedFields.locationOfIncident ?? "Not specified" : "Not specified",
-          causeOfIncident: typeof extractedFields.causeOfIncident === "string" ? extractedFields.causeOfIncident ?? "Not specified" : "Not specified",
-          typeOfIncident: typeof extractedFields.typeOfIncident === "string" ? extractedFields.typeOfIncident ?? "Not specified" : "Not specified",
+          dateOfInjury: extractedFields.dateOfInjury ?? "Not specified",
+          locationOfIncident: extractedFields.locationOfIncident ?? "Not specified",
+          causeOfIncident: extractedFields.causeOfIncident ?? "Not specified",
+          typeOfIncident: extractedFields.typeOfIncident ?? "Not specified",
           statutoryViolationsCited: Array.isArray(extractedFields.statutoryViolationsCited)
-            ? (extractedFields.statutoryViolationsCited as string[])
+            ? extractedFields.statutoryViolationsCited
             : ["Not specified"],
         };
         return {

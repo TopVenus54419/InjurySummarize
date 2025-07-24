@@ -176,7 +176,7 @@ export default function GeneratePage() {
       } else if (result.validationErrors) {
         toast.error("Failed to extract fields from PDF");
       }
-    } catch (error) {
+    } catch {
       toast.error("Error extracting fields from PDF");
     } finally {
       setIsExtracting(false);
@@ -193,7 +193,7 @@ export default function GeneratePage() {
         causeOfIncident: incidentData.causeOfIncident,
         typeOfIncident: incidentData.typeOfIncident,
         statutoryViolationsCited: incidentData.statutoryViolationsCited,
-        pdfText: pdfData?.extractedText || "",
+        pdfText: pdfData?.extractedText ?? "",
       });
 
       if (result.data) {
@@ -242,7 +242,7 @@ export default function GeneratePage() {
         causeOfIncident: incidentData.causeOfIncident,
         typeOfIncident: incidentData.typeOfIncident,
         statutoryViolationsCited: incidentData.statutoryViolationsCited,
-        pdfText: pdfData?.extractedText || "",
+        pdfText: pdfData?.extractedText ?? "",
       });
 
       if (result.data) {
