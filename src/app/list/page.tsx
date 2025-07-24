@@ -109,13 +109,13 @@ export default function IncidentAnalysisListPage() {
               <table className="min-w-full divide-y divide-gray-200 text-sm">
                 <thead className="bg-gray-50 sticky top-0 z-10">
                   <tr>
-                    <th className="px-4 py-2 text-left font-semibold text-gray-700 uppercase">Username</th>
-                    <th className="px-4 py-2 text-left font-semibold text-gray-700 uppercase">Date of Injury</th>
-                    <th className="px-4 py-2 text-left font-semibold text-gray-700 uppercase">Location</th>
-                    <th className="px-4 py-2 text-left font-semibold text-gray-700 uppercase">Cause</th>
-                    <th className="px-4 py-2 text-left font-semibold text-gray-700 uppercase">Type</th>
-                    <th className="px-4 py-2 text-left font-semibold text-gray-700 uppercase">Statutory Violations</th>
-                    <th className="px-4 py-2 text-left font-semibold text-gray-700 uppercase">Summary</th>
+                    <th className="px-4 py-2 text-left font-semibold text-black uppercase">Username</th>
+                    <th className="px-4 py-2 text-left font-semibold text-black uppercase">Date of Injury</th>
+                    <th className="px-4 py-2 text-left font-semibold text-black uppercase">Location</th>
+                    <th className="px-4 py-2 text-left font-semibold text-black uppercase">Cause</th>
+                    <th className="px-4 py-2 text-left font-semibold text-black uppercase">Type</th>
+                    <th className="px-4 py-2 text-left font-semibold text-black uppercase">Statutory Violations</th>
+                    <th className="px-4 py-2 text-left font-semibold text-black uppercase">Summary</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -125,13 +125,13 @@ export default function IncidentAnalysisListPage() {
                       className={`transition-colors ${idx % 2 === 0 ? "bg-white" : "bg-gray-50"} hover:bg-blue-50 cursor-pointer`}
                       onClick={() => { setSelectedIdx(idx); setShowModal(true); }}
                     >
-                      <td className="px-4 py-2 whitespace-nowrap">{truncateWords(usernames[item.userId] ?? item.userId, 2)}</td>
-                      <td className="px-4 py-2 whitespace-nowrap">{truncateWords(item.dateOfInjury, 2)}</td>
-                      <td className="px-4 py-2 whitespace-nowrap">{truncateWords(item.locationOfIncident, 2)}</td>
-                      <td className="px-4 py-2 whitespace-nowrap">{truncateWords(item.causeOfIncident, 2)}</td>
-                      <td className="px-4 py-2 whitespace-nowrap">{truncateWords(item.typeOfIncident, 2)}</td>
-                      <td className="px-4 py-2 whitespace-nowrap">{truncateWords(item.statutoryViolationsCited.join(", "), 2)}</td>
-                      <td className="px-4 py-2 max-w-xs flex items-center gap-2">
+                      <td className="px-4 py-2 whitespace-nowrap text-black">{truncateWords(usernames[item.userId] ?? item.userId, 2)}</td>
+                      <td className="px-4 py-2 whitespace-nowrap text-black">{truncateWords(item.dateOfInjury, 2)}</td>
+                      <td className="px-4 py-2 whitespace-nowrap text-black">{truncateWords(item.locationOfIncident, 2)}</td>
+                      <td className="px-4 py-2 whitespace-nowrap text-black">{truncateWords(item.causeOfIncident, 2)}</td>
+                      <td className="px-4 py-2 whitespace-nowrap text-black">{truncateWords(item.typeOfIncident, 2)}</td>
+                      <td className="px-4 py-2 whitespace-nowrap text-black">{truncateWords(item.statutoryViolationsCited.join(", "), 2)}</td>
+                      <td className="px-4 py-2 max-w-xs flex items-center gap-2 text-black">
                         <span>
                           {expandedSummary === idx ? item.summary : truncateWords(item.summary, 2)}
                         </span>
