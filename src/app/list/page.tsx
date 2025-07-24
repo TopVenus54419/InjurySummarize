@@ -60,8 +60,13 @@ export default function IncidentAnalysisListPage() {
       setLoading(true);
       const res = await getIncidentAnalysisHistory();
       if (res?.data?.history) {
-        setItems(res.data.history as IncidentAnalysis[]);
-        const userIds = Array.from(new Set((res.data.history as IncidentAnalysis[]).map((item) => item.userId)));
+        const mappedItems = res.data.history.map((item: any) => ({
+          ...item,
+          createdAt: typeof item.createdAt === 'string' ? item.createdAt : new Date(item.createdAt).toISOString(),
+          updatedAt: typeof item.updatedAt === 'string' ? item.updatedAt : new Date(item.updatedAt).toISOString(),
+        }));
+        setItems(mappedItems);
+        const userIds = Array.from(new Set(mappedItems.map((item) => item.userId)));
         const userMap: Record<string, string> = {};
         await Promise.all(userIds.map(async (id) => {
           try {
