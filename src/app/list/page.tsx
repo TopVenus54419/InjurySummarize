@@ -131,7 +131,7 @@ export default function IncidentAnalysisListPage() {
                       <td className="px-4 py-2 whitespace-nowrap text-black">{truncateWords(item.causeOfIncident, 2)}</td>
                       <td className="px-4 py-2 whitespace-nowrap text-black">{truncateWords(item.typeOfIncident, 2)}</td>
                       <td className="px-4 py-2 whitespace-nowrap text-black">{truncateWords(item.statutoryViolationsCited.join(", "), 2)}</td>
-                      <td className="px-4 py-2 max-w-xs flex items-center gap-2 text-black">
+                      <td className={`px-4 py-2 max-w-xs flex items-center gap-2 ${expandedSummary === idx ? 'text-black font-bold' : 'text-black'}`}>
                         <span>
                           {expandedSummary === idx ? item.summary : truncateWords(item.summary, 2)}
                         </span>
@@ -155,25 +155,27 @@ export default function IncidentAnalysisListPage() {
       {/* Modal for details */}
       {!loading && (
         <Modal open={showModal} onClose={() => setShowModal(false)}>
-          <h2 className="text-xl font-bold mb-2">Incident Analysis Details</h2>
-          {selected && (
-            <div className="space-y-2">
-              <div><b>Username:</b> {usernames[selected.userId] ?? selected.userId}</div>
-              <div><b>Date of Injury:</b> {selected.dateOfInjury}</div>
-              <div><b>Location of Incident:</b> {selected.locationOfIncident}</div>
-              <div><b>Cause of Incident:</b> {selected.causeOfIncident}</div>
-              <div><b>Type of Incident:</b> {selected.typeOfIncident}</div>
-              <div><b>Statutory Violations Cited:</b> {selected.statutoryViolationsCited.join(", ")}</div>
-              <Separator />
-              <div><b>Summary:</b></div>
-              <div className="whitespace-pre-line bg-gray-100 rounded p-2 max-h-64 overflow-auto">{selected.summary}</div>
-              <div className="flex justify-between mt-4">
-                <Button variant="outline" onClick={handlePrev}>Previous</Button>
-                <Button variant="outline" onClick={handleNext}>Next</Button>
+          <div className="text-black">
+            <h2 className="text-xl font-bold mb-2">Incident Analysis Details</h2>
+            {selected && (
+              <div className="space-y-2">
+                <div><b>Username:</b> {usernames[selected.userId] ?? selected.userId}</div>
+                <div><b>Date of Injury:</b> {selected.dateOfInjury}</div>
+                <div><b>Location of Incident:</b> {selected.locationOfIncident}</div>
+                <div><b>Cause of Incident:</b> {selected.causeOfIncident}</div>
+                <div><b>Type of Incident:</b> {selected.typeOfIncident}</div>
+                <div><b>Statutory Violations Cited:</b> {selected.statutoryViolationsCited.join(", ")}</div>
+                <Separator />
+                <div><b>Summary:</b></div>
+                <div className="whitespace-pre-line bg-gray-100 rounded p-2 max-h-64 overflow-auto">{selected.summary}</div>
+                <div className="flex justify-between mt-4">
+                  <Button variant="outline" onClick={handlePrev}>Previous</Button>
+                  <Button variant="outline" onClick={handleNext}>Next</Button>
+                </div>
               </div>
-            </div>
-          )}
-          <Button className="mt-4 w-full" onClick={() => setShowModal(false)}>Close</Button>
+            )}
+            <Button className="mt-4 w-full" onClick={() => setShowModal(false)}>Close</Button>
+          </div>
         </Modal>
       )}
     </div>
